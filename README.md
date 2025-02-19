@@ -2,26 +2,45 @@
 
 ## Creating a new VPC without a module.
 
-setup provider.tf to setup the AWS access
+- setup provider.tf to setup the AWS access
 
-define variables
-  vpc_cidr
-  vpc_name
+### define variables
+```region
+vpc-cidr
+ami
+name
+public_key
+```
 
-define subnets
+### define subnets
   3 x public
   3 x private
 
-define internet gateway
+### define internet gateway
 
-define routes
+### define routes
 
-define security groups
-  1 for EC2
+### define security groups
+- for EC2
 
-define Network ACLS
+### define Network ACLS
 
-create ec2 instance with userdata to install webserver on port 80 
-  public ip will be needed
-  needs to be setup in a public AZ
+- create ec2 instance with userdata to install webserver on port 80 
+-  public ip will be needed
+- needs to be setup in a public AZ
 
+## To run 
+
+- create london.tfvars
+```region = "eu-west-2"
+
+vpc-cidr = "10.0.0.0/16"
+
+ami = "ami-0e4b8d8a47a5631fc"
+
+name = "AndrewTest"
+```
+
+- terraform init
+- terraform plan -var-file=london.tfvars
+- terraform apply -var-file=london.tfvars
