@@ -21,6 +21,6 @@ variable "private-subnets" {
 }
 
 variable "create_private_ec2" {
-  type        = bool
-  default     = false
+  type    = bool
+  default = false
 }

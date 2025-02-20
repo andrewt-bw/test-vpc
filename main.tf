@@ -9,21 +9,21 @@ resource "aws_vpc" "vpc" {
 }
 
 resource "aws_subnet" "public_subnet" {
-  count = var.public-subnets
-  vpc_id            = aws_vpc.vpc.id
-  cidr_block        = cidrsubnet(var.vpc-cidr, 7, count.index)
+  count                   = var.public-subnets
+  vpc_id                  = aws_vpc.vpc.id
+  cidr_block              = cidrsubnet(var.vpc-cidr, 7, count.index)
   map_public_ip_on_launch = true
-  availability_zone = "${element(data.aws_availability_zones.available.names, count.index)}"
+  availability_zone       = element(data.aws_availability_zones.available.names, count.index)
   tags = {
     Name = "${var.name}-public-subnet-${element(data.aws_availability_zones.available.names, count.index)}"
   }
 }
 
 resource "aws_subnet" "private_subnet" {
-  count = var.private-subnets
+  count             = var.private-subnets
   vpc_id            = aws_vpc.vpc.id
   cidr_block        = cidrsubnet(var.vpc-cidr, 6, count.index + 10)
-  availability_zone = "${element(data.aws_availability_zones.available.names, count.index)}"
+  availability_zone = element(data.aws_availability_zones.available.names, count.index)
   tags = {
     Name = "${var.name}-private-subnet-${element(data.aws_availability_zones.available.names, count.index)}"
   }
@@ -57,9 +57,9 @@ resource "aws_eip" "nat_ip" {
 
 resource "aws_nat_gateway" "nat_gw" {
   allocation_id = aws_eip.nat_ip.id
-  subnet_id     =  element(aws_subnet.public_subnet[*].id, random_integer.subnet_index.result)
+  subnet_id     = element(aws_subnet.public_subnet[*].id, random_integer.subnet_index.result)
   tags = {
-        Name = "${var.name}-nat-gateway"
+    Name = "${var.name}-nat-gateway"
   }
 }
 
@@ -76,13 +76,13 @@ resource "aws_route" "public_subnet_route" {
 }
 
 resource "aws_route_table_association" "public_assoc" {
-  count = var.public-subnets
+  count          = var.public-subnets
   subnet_id      = aws_subnet.public_subnet[count.index].id
   route_table_id = aws_route_table.public_route_table.id
 }
 
 resource "aws_route_table_association" "private_assoc" {
-  count = var.public-subnets
+  count          = var.public-subnets
   subnet_id      = aws_subnet.private_subnet[count.index].id
   route_table_id = aws_route_table.private_route_table.id
 }
@@ -95,7 +95,7 @@ resource "aws_instance" "public_ec2" {
   ami                         = var.ami
   instance_type               = "t4g.small"
   vpc_security_group_ids      = [aws_security_group.public_sg.id]
-  subnet_id     = element(aws_subnet.public_subnet[*].id, random_integer.subnet_index.result)
+  subnet_id                   = element(aws_subnet.public_subnet[*].id, random_integer.subnet_index.result)
   associate_public_ip_address = true
   key_name                    = aws_key_pair.public_ssh.key_name
   user_data                   = <<EOF
@@ -146,9 +146,9 @@ resource "aws_security_group" "public_sg" {
 resource "aws_security_group" "private_sg" {
   vpc_id = aws_vpc.vpc.id
   ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
+    from_port       = 22
+    to_port         = 22
+    protocol        = "tcp"
     security_groups = [aws_security_group.public_sg.id]
   }
   egress {
@@ -163,11 +163,11 @@ resource "aws_security_group" "private_sg" {
 }
 
 resource "aws_instance" "private_ec2" {
-  count         = var.create_private_ec2 ? 1 : 0
+  count                       = var.create_private_ec2 ? 1 : 0
   ami                         = var.ami
   instance_type               = "t4g.small"
   vpc_security_group_ids      = [aws_security_group.private_sg.id]
-  subnet_id     = element(aws_subnet.private_subnet[*].id, random_integer.subnet_index.result)
+  subnet_id                   = element(aws_subnet.private_subnet[*].id, random_integer.subnet_index.result)
   associate_public_ip_address = true
   key_name                    = aws_key_pair.public_ssh.key_name
   tags = {
