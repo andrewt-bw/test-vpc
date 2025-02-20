@@ -57,7 +57,7 @@ resource "aws_eip" "nat_ip" {
 
 resource "aws_nat_gateway" "nat_gw" {
   allocation_id = aws_eip.nat_ip.id
-  subnet_id     = element(aws_subnet.public_subnet[*].id, random_integer.subnet_index.result)
+  subnet_id     = aws_subnet.public_subnet[0].id
   tags = {
     Name = "${var.name}-nat-gateway"
   }
@@ -107,7 +107,9 @@ sudo apt update
 sudo apt upgrade -y
 sudo reboot
 EOF
-
+  lifecycle {
+    ignore_changes = [subnet_id]
+  }
   tags = {
     Name = "${var.name}-public-ec2"
   }
@@ -170,6 +172,10 @@ resource "aws_instance" "private_ec2" {
   subnet_id                   = element(aws_subnet.private_subnet[*].id, random_integer.subnet_index.result)
   associate_public_ip_address = true
   key_name                    = aws_key_pair.public_ssh.key_name
+
+  lifecycle {
+    ignore_changes = [subnet_id]
+  }
   tags = {
     Name = "${var.name}-private-ec2"
   }
