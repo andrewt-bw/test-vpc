@@ -1,3 +1,4 @@
+data "aws_availability_zones" "available" {}
 resource "aws_vpc" "vpc" {
   cidr_block           = var.vpc-cidr
   enable_dns_hostnames = true
@@ -6,22 +7,22 @@ resource "aws_vpc" "vpc" {
   }
 }
 resource "aws_subnet" "public_subnet" {
-  count = 3
+  count = var.public-subnets
   vpc_id            = aws_vpc.vpc.id
-  cidr_block        = cidrsubnet(var.vpc-cidr, 8, count.index)
+  cidr_block        = cidrsubnet(var.vpc-cidr, 7, count.index)
   map_public_ip_on_launch = true
-  availability_zone = "${var.region}${element(["a", "b", "c"], count.index)}"
+  availability_zone = "${element(data.aws_availability_zones.available.names, count.index)}"
   tags = {
-    Name = "${var.name}-public-subnet-${element(["a", "b", "c"], count.index)}"
+    Name = "${var.name}-public-subnet-${element(data.aws_availability_zones.available.names, count.index)}"
   }
 }
 resource "aws_subnet" "private_subnet" {
-  count = 3
+  count = var.private-subnets
   vpc_id            = aws_vpc.vpc.id
-  cidr_block        = cidrsubnet(var.vpc-cidr, 8, count.index + 10)
-  availability_zone = "${var.region}${element(["a", "b", "c"], count.index)}"
+  cidr_block        = cidrsubnet(var.vpc-cidr, 6, count.index + 10)
+  availability_zone = "${element(data.aws_availability_zones.available.names, count.index)}"
   tags = {
-    Name = "${var.name}-private-subnet-${element(["a", "b", "c"], count.index)}"
+    Name = "${var.name}-private-subnet-${element(data.aws_availability_zones.available.names, count.index)}"
   }
 
 }
@@ -44,7 +45,7 @@ resource "aws_route" "public_subnet_route" {
   route_table_id         = aws_route_table.public_route_table.id
 }
 resource "aws_route_table_association" "public_assoc" {
-  count = 3
+  count = var.public-subnets
   subnet_id      = aws_subnet.public_subnet[count.index].id
   route_table_id = aws_route_table.public_route_table.id
 }
