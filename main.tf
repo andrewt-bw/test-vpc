@@ -117,7 +117,7 @@ EOF
 
 resource "random_integer" "subnet_index" {
   min = 0
-  max = 2
+  max = length(aws_subnet.public_subnet) - 1
 }
 
 resource "aws_security_group" "public_sg" {
